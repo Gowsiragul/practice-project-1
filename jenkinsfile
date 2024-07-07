@@ -1,0 +1,32 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Pull Code From GitHub') {
+            steps {
+                git 'https://github.com/Gowsiragul/practice-project-1'
+            }
+        }
+
+        stage('Build the Docker image') {
+            steps {
+                sh 'sudo docker build -t image1 /var/lib/jenkins/workspace/jenproject'
+                sh 'sudo docker tag image1 gowsiragul03/image1:latest'
+                sh 'sudo docker tag image1 gowsiragul03/image1:${BUILD_NUMBER}'
+            }
+        }
+
+        stage('Push the Docker image') {
+            steps {
+                sh 'sudo docker image push gowsiragul03/image1:latest'
+                sh 'sudo docker image push gowsiragul03/image1:${BUILD_NUMBER}'
+            }
+        }
+        stage('Deploy on Kubernetes') {
+            steps {
+                sh 'sudo kubectl apply -f/var/lib/Jenkins/workspace/jenkinproject/pod.yaml'
+                sh 'sudo kubectl rollout restart deployment loadbalancer-pod'
+            }
+        }
+    }
+}
